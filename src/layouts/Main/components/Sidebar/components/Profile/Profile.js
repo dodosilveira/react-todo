@@ -27,9 +27,10 @@ const Profile = props => {
   const classes = useStyles();
 
   const user = {
-    name: 'Shen Zhi',
+    name: 'Douglas Silveira',
     avatar: '/images/avatars/avatar_11.png',
-    bio: 'Brain Director'
+    bio: 'Developer',
+    email: localStorage.getItem('EMAIL_USUARIO')
   };
 
   return (
@@ -51,6 +52,7 @@ const Profile = props => {
         {user.name}
       </Typography>
       <Typography variant="body2">{user.bio}</Typography>
+      <Typography variant="body2">{user.email}</Typography>
     </div>
   );
 };
