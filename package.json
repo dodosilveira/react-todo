@@ -4,6 +4,9 @@
   "email": "contact@devias.io",
   "licence": "MIT",
   "version": "0.3.0",
+  "engines": {
+    "node": "16.x"
+  },
   "private": false,
   "scripts": {
     "start": "react-scripts start",
