@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
+import { listar, salvar, deletar, alterarStatus } from '../../store/tarefasReducer'
+
+import { hideMsg } from '../../store/dialogReducer'
+
 import { TarefasToolbar, TarefasTable } from './components';
-import axios from 'axios';
 
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@material-ui/core'
 
@@ -15,87 +20,36 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const API_URL = 'https://minhastarefas-api.herokuapp.com/tarefas'
-
-const TarefasList = () => {
+const TarefasList = (props) => {
   const classes = useStyles();
 
-  const [tarefas, setTarefas] = useState([])
-  const [openDialog, setOpenDialog] = useState(false)
-  const [mensagem, setMensagem] = useState('')
-
-  const salvar = (tarefa) => {
-    axios.post(API_URL, tarefa, {
-      headers: {'x-tenant-id' : localStorage.getItem('EMAIL_USUARIO')}
-    }).then( response => {
-      const novaTarefa = response.data
-      setTarefas( [...tarefas], novaTarefa )
-      setMensagem('Tarefa adicionada com sucesso.')
-      setOpenDialog(true)
-      listar();
-    }).catch ( erro => {
-      setMensagem(erro.message)
-      setOpenDialog(true)
-    })
-  }
-
-  const listar = () => {
-    axios.get(API_URL,{
-      headers: {'x-tenant-id' : localStorage.getItem('EMAIL_USUARIO')}
-    }).then( response => {
-      const listaTarefas = response.data
-      setTarefas(listaTarefas)
-    }).catch ( erro => {
-      setMensagem(erro)
-      setOpenDialog(true)
-    })
-  }
-
-  const alterarStatus = (id) => {
-    axios.patch(`${API_URL}/${id}`, null, {
-      headers: {'x-tenant-id' : localStorage.getItem('EMAIL_USUARIO')}
-    }).then( response => {
-      setMensagem('Status alterado com sucesso.')
-      setOpenDialog(true)
-      listar();
-    }).catch ( erro => {
-      setMensagem(erro)
-      setOpenDialog(true)
-    })
-  }
-
-  const deletar = (id) => {
-    axios.delete(`${API_URL}/${id}`, {
-      headers: {'x-tenant-id' : localStorage.getItem('EMAIL_USUARIO')}
-    }).then( response => {
-      setMensagem('Tarefa excluída com sucesso.')
-      setOpenDialog(true)
-      listar();
-    }).catch ( erro => {
-      setMensagem(erro)
-      openDialog(true)
-    })
-  }
-
   useEffect(() => {
-    listar();
+    props.listar();
   }, [] )
 
   return (
     <div className={classes.root}>
-      <TarefasToolbar salvar={salvar} />
+      <TarefasToolbar salvar={props.salvar} />
       <div className={classes.content}>
-        <TarefasTable deletetarefa={deletar} alterarstatus={alterarStatus} tarefas={tarefas} />
+        <TarefasTable deletetarefa={props.deletar} alterarstatus={props.alterarStatus} tarefas={props.tarefas} />
       </div>
-      <Dialog open={openDialog} onClose={e => setOpenDialog(false)}>
+      <Dialog open={props.showMessage} onClose={props.hideMsg}>
         <DialogTitle>Atenção</DialogTitle>
-        <DialogContent>{mensagem}</DialogContent>
+        <DialogContent>{props.messages}</DialogContent>
         <DialogActions>
-          <Button onClick={e => setOpenDialog(false)}>Fechar</Button>
+          <Button onClick={props.hideMsg}>Fechar</Button>
         </DialogActions>
       </Dialog>
     </div>
   );
 };
 
-export default TarefasList;
+const mapStateToProps = state => ({
+  tarefas: state.tarefas.tarefas,
+  messages: state.messages.msg,
+  showMessage: state.messages.showMsg
+})
+
+const mapDispatchToProps = dispatch => bindActionCreators({listar, salvar, deletar, alterarStatus, hideMsg}, dispatch)
+
+export default connect(mapStateToProps, mapDispatchToProps) (TarefasList);
